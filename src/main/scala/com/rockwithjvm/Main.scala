@@ -15,6 +15,7 @@ object PrivateExecutionContext {
 }
 
 object Main {
+
   import PrivateExecutionContext._
 
   val shawshank = Movie(1L, "Shawshank Redemption", Some(LocalDate.of(1994, 4, 2)), 162)
@@ -31,8 +32,19 @@ object Main {
     }
     Thread.sleep(10000)
   }
-  
+
+  def demoReadAllMovies(): Unit = {
+    val resultFuture: Future[Seq[Movie]] = Connection.db.run(SlickTables.movieTable.result) // select * from tableName
+    resultFuture.onComplete {
+      case Success(movies) => println(s"Fetched: ${movies.mkString(", ")}")
+      case Failure(ex) => println(s"Fetching failed:- $ex")
+    }
+    Thread.sleep(10000)
+  }
+
+
   def main(args: Array[String]): Unit = {
-    demoInsertMovie()
+    //    demoInsertMovie()
+    demoReadAllMovies()
   }
 }
