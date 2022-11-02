@@ -4,6 +4,7 @@ import java.time.LocalDate
 
 case class Movie(id: Long, name: String, releaseDate: Option[LocalDate], lengthInMin: Int)
 case class Actor(id: Long, name: String)
+case class MovieActorMapping(id: Long, movie_id: Long, actor_id: Long) // actor movie mapping (JOINS)
 
 object SlickTables {
 
@@ -21,6 +22,7 @@ object SlickTables {
   // "API entry point"
   lazy val movieTable = TableQuery[MovieTable]
 
+  // Actor Mapping
   class ActorTable(tag: Tag) extends Table[Actor](tag, Some("movies"), "Actor") {
     def id = column[Long]("actor_id", O.PrimaryKey, O.AutoInc)
     def name = column[String]("name")
@@ -30,5 +32,19 @@ object SlickTables {
   }
 
   lazy val actorTable = TableQuery[ActorTable]
+
+  // Actor Movie Mapping
+  class MovieActorMappingTable (tag: Tag)
+  extends Table[MovieActorMapping](tag, Some("movies"), "MovieActorMapping") {
+    def id = column[Long]("movie_actor_id", O.PrimaryKey, O.AutoInc)
+    def movieId = column[Long]("movie_id")
+    def actorId = column[Long]("actor_id")
+    override def * = (id, movieId, actorId) <> (MovieActorMapping.tupled, MovieActorMapping.unapply)
+
+  }
+
+  lazy val movieActorMappingTable = TableQuery[MovieActorMappingTable]
+  // insert into movies."MovieActorMapping" values(1, 4, 3); in terminal and the goto Main.scala for joins...
+
 
 }
