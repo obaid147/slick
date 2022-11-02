@@ -15,13 +15,18 @@ object SlickTables {
 
   import slick.jdbc.PostgresProfile.api._
   class MovieTable(tag: Tag) extends Table[Movie](tag, Some("movies"), "Movie") {
-    override def * : ProvenShape[Movie] = (id, name, releaseDate, lengthInMin) <> (Movie.tupled, Movie.unapply)
+
+
     def id = column[Long]("movie_id", O.PrimaryKey, O.AutoInc)
     def name = column[String]("name")
     def releaseDate = column[Option[LocalDate]]("release_date")
     def lengthInMin = column[Int]("length_in_min")
+
+    // * is a mapping function to the case class
+    override def * : ProvenShape[Movie] = (id, name, releaseDate, lengthInMin) <> (Movie.tupled, Movie.unapply)
   }
 
-  val movieTable = TableQuery[MovieTable]
+  // "API entry point"
+  lazy val movieTable = TableQuery[MovieTable]
 
 }
