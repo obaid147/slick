@@ -53,6 +53,15 @@ object Main {
     Thread.sleep(10000)
   }
 
+  def findMovieByName(name: String): Unit = {
+    val res = Connection.db.run(SlickTables.movieTable.filter(_.name === name).result.headOption)
+    res.onComplete{
+      case Success(movie) => println(s"Fetched Movie:- $movie")
+      //case Failure(ex) => println(s"Fetching failed:- $ex")
+    }
+    Thread.sleep(10000)
+  }
+
   def demoUpdate(): Unit = {
     val queryDescriptor = SlickTables.movieTable.filter(_.id === 1L).update(shawshank.copy(lengthInMin = 150))
     val futureId: Future[Int] = Connection.db.run(queryDescriptor)
@@ -80,6 +89,7 @@ object Main {
     // demoReadSomeMovie()
     // demoUpdate()
     // demoReadAllMovies()
-    demoDelete()
+    //demoDelete()
+    findMovieByName("Shawshank Redemptio")
   }
 }
