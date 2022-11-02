@@ -22,10 +22,13 @@ object Main {
   // movies
   val shawshank = Movie(1L, "Shawshank Redemption", Some(LocalDate.of(1994, 4, 2)), 162)
   val theMatrix = Movie(2L, "The Matrix", Some(LocalDate.of(1999, 3, 31)), 145)
+  val phantomMenace = Movie(3L, "Star Wars: Phantom Menace",
+                      Some(LocalDate.of(1999, 5, 16)), 133)
 
   // actors
   val tomHank = Actor(1L, "Tom Hank")
   val julia = Actor(2L, "Julia")
+  val liamNeeson = Actor(3L, "Liam Neeson")
 
   def demoInsertMovie(): Unit = {
     val queryDescription: FixedSqlAction[Int, NoStream, Effect.Write] = SlickTables.movieTable += theMatrix
@@ -117,6 +120,17 @@ object Main {
     Connection.db.run(query)
   }
 
+  def multipleQueriesSingleTransaction(): Unit = {
+    // insert movie and actor in same transaction... 3L
+    val insertMovie = SlickTables.movieTable += phantomMenace
+    val insertActor = SlickTables.actorTable += liamNeeson
+    val finalQuery = DBIO.seq(insertMovie, insertActor)
+    Connection.db.run(finalQuery.transactionally) // transactionally:- IF movie of actor failed, roll both back...
+      .onComplete{
+        case Success(_) => println("Transaction Successfully completed.")
+        case Failure(ex) => println(s"Transaction Failed:- $ex")
+      }
+  }
 
   def main(args: Array[String]): Unit = {
     // demoInsertMovie()
@@ -134,7 +148,9 @@ object Main {
       case Failure(ex) => println(s"Query Failed: $ex")
     }*/
 
-    demoInsertActors()
+    //demoInsertActors()
+
+    multipleQueriesSingleTransaction()
     Thread.sleep(5000)
     PrivateExecutionContext.executor.shutdown()
 
