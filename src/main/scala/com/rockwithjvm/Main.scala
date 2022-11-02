@@ -42,9 +42,21 @@ object Main {
     Thread.sleep(10000)
   }
 
+  def demoReadSomeMovie(): Unit = {
+    val resultFuture: Future[Seq[Movie]] =
+      Connection.db.run(SlickTables.movieTable.filter(_.name.like("%Matrix%")).result)
+                        // select * from tableName where name like "Matrix"
+    resultFuture.onComplete {
+      case Success(movies) => println(s"Fetched: ${movies.mkString(", ")}")
+      case Failure(ex) => println(s"Fetching failed:- $ex")
+    }
+    Thread.sleep(10000)
+  }
+
 
   def main(args: Array[String]): Unit = {
     //    demoInsertMovie()
-    demoReadAllMovies()
+    // demoReadAllMovies()
+    demoReadSomeMovie()
   }
 }
