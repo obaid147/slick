@@ -18,9 +18,10 @@ object Main {
   import PrivateExecutionContext._
 
   val shawshank = Movie(1L, "Shawshank Redemption", Some(LocalDate.of(1994, 4, 2)), 162)
+  val theMatrix = Movie(2L, "The Matrix", Some(LocalDate.of(1999, 3, 31)), 145)
 
   def demoInsertMovie(): Unit = {
-    val queryDescription: FixedSqlAction[Int, NoStream, Effect.Write] = SlickTables.movieTable += shawshank
+    val queryDescription: FixedSqlAction[Int, NoStream, Effect.Write] = SlickTables.movieTable += theMatrix
 
     val futureId: Future[Int] = Connection.db.run(queryDescription)
 
@@ -29,8 +30,8 @@ object Main {
       case Failure(v) => println(s"The error is:- $v")
     }
     Thread.sleep(10000)
-
   }
+  
   def main(args: Array[String]): Unit = {
     demoInsertMovie()
   }
