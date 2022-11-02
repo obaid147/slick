@@ -5,17 +5,24 @@ import slick.jdbc.PostgresProfile.api._
 import slick.sql.FixedSqlAction
 
 import java.time.LocalDate
-import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.Future
+import java.util.concurrent.Executors
+import scala.concurrent.{ExecutionContext, Future}
 import scala.util.{Failure, Success}
 
+object PrivateExecutionContext {
+  val executor = Executors.newFixedThreadPool(4)
+  implicit val ex: ExecutionContext = ExecutionContext.fromExecutorService(executor)
+}
+
 object Main {
+  import PrivateExecutionContext._
+
   val shawshank = Movie(1L, "Shawshank Redemption", Some(LocalDate.of(1994, 4, 2)), 162)
 
-  def insertMovie(): Unit = {
-    val insertQuery: FixedSqlAction[Int, NoStream, Effect.Write] = SlickTables.movieTable += shawshank
+  def demoInsertMovie(): Unit = {
+    val queryDescription: FixedSqlAction[Int, NoStream, Effect.Write] = SlickTables.movieTable += shawshank
 
-    val futureId: Future[Int] = Connection.db.run(insertQuery)
+    val futureId: Future[Int] = Connection.db.run(queryDescription)
 
     futureId.onComplete {
       case Success(v) => println(s"The ID is:- $v")
@@ -25,6 +32,6 @@ object Main {
 
   }
   def main(args: Array[String]): Unit = {
-    insertMovie()
+    demoInsertMovie()
   }
 }
