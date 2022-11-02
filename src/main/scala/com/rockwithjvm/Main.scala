@@ -53,10 +53,33 @@ object Main {
     Thread.sleep(10000)
   }
 
+  def demoUpdate(): Unit = {
+    val queryDescriptor = SlickTables.movieTable.filter(_.id === 1L).update(shawshank.copy(lengthInMin = 150))
+    val futureId: Future[Int] = Connection.db.run(queryDescriptor)
+    futureId.onComplete{
+      case Success(id) => println(s"Updated movie with id: $id")
+      case Failure(ex) => println(s"Update failed:- $ex")
+    }
+    Thread.sleep(10000)
+  }
+
+  def demoDelete(): Unit = {
+    val deleteQuery: Future[Int] = Connection.db.run(SlickTables.movieTable.filter(_.name.like("%Matrix%")).delete)
+
+    deleteQuery.onComplete{
+      case Success(id) => println(s"id: $id deleted")
+      case Failure(ex) => println(s"Deletion failed $ex")
+    }
+    Thread.sleep(10000)
+  }
+
 
   def main(args: Array[String]): Unit = {
     //    demoInsertMovie()
     // demoReadAllMovies()
-    demoReadSomeMovie()
+    // demoReadSomeMovie()
+    // demoUpdate()
+    // demoReadAllMovies()
+    demoDelete()
   }
 }
