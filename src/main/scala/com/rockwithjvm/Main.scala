@@ -1,6 +1,7 @@
 package com.rockwithjvm
 
 import slick.dbio.Effect
+import slick.jdbc.GetResult
 import slick.jdbc.PostgresProfile.api._
 import slick.sql.FixedSqlAction
 
@@ -18,8 +19,13 @@ object Main {
 
   import PrivateExecutionContext._
 
+  // movies
   val shawshank = Movie(1L, "Shawshank Redemption", Some(LocalDate.of(1994, 4, 2)), 162)
   val theMatrix = Movie(2L, "The Matrix", Some(LocalDate.of(1999, 3, 31)), 145)
+
+  // actors
+  val tomHank = Actor(1L, "Tom Hank")
+  val julia = Actor(2L, "Julia")
 
   def demoInsertMovie(): Unit = {
     val queryDescription: FixedSqlAction[Int, NoStream, Effect.Write] = SlickTables.movieTable += theMatrix
@@ -29,6 +35,19 @@ object Main {
     futureId.onComplete {
       case Success(v) => println(s"The ID is:- $v")
       case Failure(v) => println(s"The error is:- $v")
+    }
+    Thread.sleep(10000)
+  }
+
+  def demoInsertActors(): Unit = {
+    // using ++= we can add multiple actors once...
+    val queryDescription = SlickTables.actorTable ++= Seq(tomHank, julia)
+
+    val futureId = Connection.db.run(queryDescription)
+
+    futureId.onComplete {
+      case Success(_) => println(s"Success....")
+      case Failure(ex) => println(s"Failure, The error is:- $ex")
     }
     Thread.sleep(10000)
   }
@@ -81,15 +100,44 @@ object Main {
     }
     Thread.sleep(10000)
   }
+  // part1 ends... CRUD
+
+  // part2 starts...
+  def readMovieByPlainQuery(): Future[Vector[Movie]] = {
+    implicit val getResultMovie: GetResult[Movie] =
+      GetResult(positionResult =>
+        Movie(
+          positionResult.<<, //id
+          positionResult.<<, //name
+          Some(LocalDate.parse(positionResult.nextString())), //localDate
+          positionResult.<< //lengthInMinutes
+        )
+      )
+    val query = sql"""select * from movies."Movie"""".as[Movie] // required implicit
+    Connection.db.run(query)
+  }
 
 
   def main(args: Array[String]): Unit = {
-    //    demoInsertMovie()
+    // demoInsertMovie()
     // demoReadAllMovies()
     // demoReadSomeMovie()
     // demoUpdate()
     // demoReadAllMovies()
-    //demoDelete()
-    findMovieByName("Shawshank Redemptio")
+    // demoDelete()
+    // findMovieByName("Shawshank Redemptio")
+
+    // part2...
+    // demoInsertMovie()
+    /*readMovieByPlainQuery().onComplete {
+      case Success(movies) => println(s"Query successful, movies: $movies")
+      case Failure(ex) => println(s"Query Failed: $ex")
+    }*/
+
+    demoInsertActors()
+    Thread.sleep(5000)
+    PrivateExecutionContext.executor.shutdown()
+
+
   }
 }
