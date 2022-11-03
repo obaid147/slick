@@ -1,10 +1,63 @@
 package com.rockwithjvm
 
+import play.api.libs.json.JsValue
+
 import java.time.LocalDate
 
 case class Movie(id: Long, name: String, releaseDate: Option[LocalDate], lengthInMin: Int)
 case class Actor(id: Long, name: String)
 case class MovieActorMapping(id: Long, movie_id: Long, actor_id: Long) // actor movie mapping (JOINS)
+
+//part4 using slick-pg_play-json and slick-pg libraries
+case class MovieLocations(id: Long, movieId: Long, locations: List[String])
+case class MovieProperties(id: Long, movieId: Long, properties: Map[String, String])
+case class ActorDetails(id: Long, actorId: Long, personalDetails: JsValue)
+object SpecialTables {
+
+  import CustomPostgresProfile.api._
+  // We need to define our own slick profile to support datastructures like List...CustomPostgresProfile.scala
+  class MovieLocationsTable(tag: Tag) extends Table[MovieLocations](tag, Some("movies"), "MovieLocations") {
+    def id = column[Long]("movie_location_id", O.PrimaryKey, O.AutoInc)
+    def movieId = column[Long]("movie_id")
+    def location = column[List[String]]("locations") // cannot simple pass implicit here, we need to change import.
+    override def * =
+      (id, movieId, location) <> (MovieLocations.tupled, MovieLocations.unapply)
+  }
+
+  // "API entry point"
+  lazy val movieLocationsTable = TableQuery[MovieLocationsTable]
+    // --------------
+  class MoviePropertiesTable(tag: Tag) extends Table[MovieProperties](tag, Some("movies"), "MovieProperties") {
+    def id = column[Long]("movie_location_id", O.PrimaryKey, O.AutoInc)
+
+    def movieId = column[Long]("movie_id")
+
+    def properties = column[Map[String, String]]("properties")
+
+    override def * =
+      (id, movieId, properties) <> (MovieProperties.tupled, MovieProperties.unapply)
+  }
+
+  // "API entry point"
+  lazy val moviePropertiesTable = TableQuery[MoviePropertiesTable]
+
+  // ----------
+  class ActorDetailsTable(tag: Tag) extends Table[ActorDetails](tag, Some("movies"), "ActorDetails") {
+    def id = column[Long]("id", O.PrimaryKey, O.AutoInc)
+
+    def actorId = column[Long]("actor_id")
+
+    def personalDetails = column[JsValue]("personal_info")
+
+    override def * =
+      (id, actorId, personalDetails) <> (ActorDetails.tupled, ActorDetails.unapply)
+  }
+
+  // "API entry point"
+  lazy val actorDetailsTable = TableQuery[ActorDetailsTable]
+
+}
+
 
 case class SteamingProviderMapping(id: Long, movieId: Long, streamingProvider: StreamingService.Provider)
 object StreamingService extends Enumeration {

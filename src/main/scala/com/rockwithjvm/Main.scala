@@ -1,5 +1,6 @@
 package com.rockwithjvm
 
+import play.api.libs.json.Json
 import slick.dbio.Effect
 import slick.jdbc.GetResult
 import slick.jdbc.PostgresProfile.api._
@@ -37,6 +38,18 @@ object Main {
     SteamingProviderMapping(1L, 4L, StreamingService.Prime)
   )
 
+  val starWarsLocations = MovieLocations(1L, 4L, List("England", "Tunisia", "Italy")) // List
+  val starWarsProperties = MovieProperties(1L, 10L, Map(  // Map
+    "Genre" -> "sci-fi", "features" -> "Lightsabers"
+  ))
+  val liamNeesonDetails = ActorDetails(1L, 3L, Json.parse(
+    """
+      |{
+      | "born": 1952,
+      | "awesome": "yes"
+      |}
+      |""".stripMargin
+  )) //JSON
   def demoInsertMovie(): Unit = {
     val queryDescription: FixedSqlAction[Int, NoStream, Effect.Write] = SlickTables.movieTable += theMatrix
 
@@ -173,6 +186,20 @@ object Main {
       }
   }
 
+  // part5
+  def insertLocationsStarWars(): Unit = { // Lists
+    val query = SpecialTables.movieLocationsTable += starWarsLocations
+    Connection.db.run(query)
+  }
+  def insertPropertiesDemo(): Unit = { // Maps
+    val query = SpecialTables.moviePropertiesTable += starWarsProperties
+    Connection.db.run(query)
+  }
+
+  def insertLiamNeesonDetails(): Unit = {
+    val query = SpecialTables.actorDetailsTable += liamNeesonDetails
+    Connection.db.run(query)
+  }
   def main(args: Array[String]): Unit = {
     // demoInsertMovie()
     // demoReadAllMovies()
@@ -205,7 +232,12 @@ object Main {
 
     // ----- part4
     //addStreamingProviders()
-    findProvidersForMovie(4)
+//    findProvidersForMovie(4)
+
+    // part5
+//    insertLocationsStarWars()
+//    insertPropertiesDemo()
+    insertLiamNeesonDetails()
     Thread.sleep(5000)
     PrivateExecutionContext.executor.shutdown()
 
