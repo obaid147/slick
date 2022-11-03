@@ -6,6 +6,14 @@ case class Movie(id: Long, name: String, releaseDate: Option[LocalDate], lengthI
 case class Actor(id: Long, name: String)
 case class MovieActorMapping(id: Long, movie_id: Long, actor_id: Long) // actor movie mapping (JOINS)
 
+case class SteamingProviderMapping(id: Long, movieId: Long, streamingProvider: StreamingService.Provider)
+object StreamingService extends Enumeration {
+  type Provider = Value
+  val Netflix = Value("Netflix")
+  val Disney = Value("Disney+")
+  val Prime = Value("AmazonPrime")
+  val Sony = Value("SonyLiv")
+}
 object SlickTables {
 
   import slick.jdbc.PostgresProfile.api._
@@ -40,11 +48,25 @@ object SlickTables {
     def movieId = column[Long]("movie_id")
     def actorId = column[Long]("actor_id")
     override def * = (id, movieId, actorId) <> (MovieActorMapping.tupled, MovieActorMapping.unapply)
-
   }
-
   lazy val movieActorMappingTable = TableQuery[MovieActorMappingTable]
   // insert into movies."MovieActorMapping" values(1, 4, 3); in terminal and the goto Main.scala for joins...
 
+
+  // streaming service mapping
+  class StreamingProviderMappingTable(tag: Tag) extends
+    Table[SteamingProviderMapping](tag, Some("movies"), "StreamingProviderMapping") {
+    def id = column[Long]("id", O.PrimaryKey, O.AutoInc)
+    def movieId = column[Long]("movie_id")
+
+    implicit val providerMapper = MappedColumnType.base[StreamingService.Provider, String](
+      provide => provide.toString,
+      string => StreamingService.withName(string)
+    ) // implicit for streamingProvider
+    def streamingProvider = column[StreamingService.Provider]("streaming_provider")
+    override def * =
+      (id, movieId, streamingProvider)<>(SteamingProviderMapping.tupled, SteamingProviderMapping.unapply)
+  }
+  lazy val streamingProviderMappingTable = TableQuery[StreamingProviderMappingTable]
 
 }
