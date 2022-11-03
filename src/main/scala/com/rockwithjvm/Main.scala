@@ -143,6 +143,15 @@ object Main {
     Connection.db.run(joinQuery.result)
   }
 
+  def findAllMoviesByActor(actorId: Long): Future[Seq[Movie]] = {
+    val joinQuery = SlickTables.movieActorMappingTable
+      .filter(_.actorId === actorId)
+      .join(SlickTables.movieTable)
+      .on(_.movieId === _.id)
+      .map(_._2)
+    Connection.db.run(joinQuery.result)
+  }
+
   def main(args: Array[String]): Unit = {
     // demoInsertMovie()
     // demoReadAllMovies()
@@ -163,7 +172,12 @@ object Main {
 
     // multipleQueriesSingleTransaction()
 
-    findAllActorsByMovie(4L).onComplete {
+    /*findAllActorsByMovie(4L).onComplete {
+      case Failure(exception) => println(s"Failed:- $exception")
+      case Success(value) => println(value)
+    }*/
+
+    findAllMoviesByActor(3L).onComplete{
       case Failure(exception) => println(s"Failed:- $exception")
       case Success(value) => println(value)
     }
