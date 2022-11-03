@@ -69,4 +69,15 @@ object SlickTables {
   }
   lazy val streamingProviderMappingTable = TableQuery[StreamingProviderMappingTable]
 
+  //table Generation Script  ->>> This is to generate tables for init-script.sql
+  val tables = List(movieTable, actorTable, movieActorMappingTable, streamingProviderMappingTable)
+  val ddl = tables.map(_.schema).reduce(_ ++ _)
 }
+
+object TableDefinitionGenerator {
+  def main(args: Array[String]): Unit = { // RUN THIS and copy the generate table
+    println(SlickTables.ddl.createIfNotExistsStatements.mkString(";\n"))
+  }
+}
+
+
